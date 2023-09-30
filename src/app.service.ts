@@ -1,8 +1,12 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import { parse } from 'node-html-parser';
 import * as crawler from 'crawler-request';
-import { TimeTableDayType, TimeTableType } from './types/timetable';
+import { FiltersType, TimeTableDayType, TimeTableType } from './types/timetable';
+import { createReadStream, readFileSync } from 'fs';
+import { join } from 'path';
+import * as pdf from 'pdf-creator-node';
+import { Response } from 'express';
 
 const timetableUrl =
   'https://www.ur.edu.pl/pl/kolegia/kolegium-nauk-spolecznych/student/kierunki-studiow-programy-rozklady-sylabusy/pedagogika/rozklady-zajec';
@@ -27,7 +31,9 @@ const findRowsAndGetValues = (text) => {
   const results = [];
 
   while ((matches = regex.exec(trimedText)) !== null) {
-    const boundaryIndex = matches[3].lastIndexOf(matches[3].match(/[a-z][A-Z]/g)?.pop() || '');    
+    const boundaryIndex = matches[3].lastIndexOf(
+      matches[3].match(/[a-z][A-Z]/g)?.pop() || '',
+    );
     const location = matches[4].startsWith('ul.')
       ? matches[4].split(/(ul\.[\p{L} -\.]+)/u).join(' ')
       : matches[4];
@@ -35,12 +41,12 @@ const findRowsAndGetValues = (text) => {
     results.push({
       start: matches[1],
       end: matches[2],
-      subject: boundaryIndex !== -1
-        ? matches[3].slice(boundaryIndex + 1)
-        : matches[3],
-      teacher: boundaryIndex !== -1
-        ? matches[3].slice(0, boundaryIndex + 1)
-        : matches[3],
+      subject:
+        boundaryIndex !== -1 ? matches[3].slice(boundaryIndex + 1) : matches[3],
+      teacher:
+        boundaryIndex !== -1
+          ? matches[3].slice(0, boundaryIndex + 1)
+          : matches[3],
       room: location,
       group: matches[5],
       groupType: ['ćw. ', 'war. '].includes(matches[6]) ? matches[6] : '',
@@ -118,6 +124,12 @@ function filterClassesByGroup(
   return filteredTimeTable;
 }
 
+const options = {
+  format: 'Legal',
+  orientation: 'landscape',
+  border: '10mm',
+};
+
 @Injectable()
 export class AppService {
   constructor(private readonly httpService: HttpService) {}
@@ -125,7 +137,7 @@ export class AppService {
   async getTimeTable(
     exerciseGroup: number,
     workshopGroup: number,
-  ): Promise<TimeTableType> {
+  ): Promise<TimeTableType & FiltersType> {
     const data = await this.httpService.axiosRef.get(timetableUrl);
     const root = parse(data.data);
     const pdfLink = root.querySelector('.ce_text > p:nth-child(2) a');
@@ -140,6 +152,43 @@ export class AppService {
     const response = await crawler(fulllPdfUrl);
     const results = parseSchedule(response.text) as TimeTableType;
 
-    return filterClassesByGroup(results, exerciseGroup, workshopGroup);
+    return {...filterClassesByGroup(results, exerciseGroup, workshopGroup), filters: {exerciseGroup, workshopGroup}};
+  }
+
+  async generatePdf(
+    res: Response,
+    exerciseGroup: number,
+    workshopGroup: number,
+  ) {
+    const data = await this.httpService.axiosRef.get(timetableUrl);
+    const root = parse(data.data);
+    const pdfLink = root.querySelector('.ce_text > p:nth-child(2) a');
+    if (!pdfLink) {
+      throw new Error('No pdf url found');
+    }
+    const timetableUrlObject = new URL(timetableUrl);
+    const fulllPdfUrl = `${timetableUrlObject.protocol}//${
+      timetableUrlObject.hostname
+    }/${pdfLink.getAttribute('href')}`;
+
+    const response = await crawler(fulllPdfUrl);
+    const results = parseSchedule(response.text) as TimeTableType;
+
+    const pdfData = filterClassesByGroup(results, exerciseGroup, workshopGroup);
+    const html = readFileSync(
+      join(__dirname, '..', 'views', 'pdf.hbs'),
+      'utf8',
+    );
+    const pdfBuffer = await pdf.create(
+      {
+        html: html,
+        data: pdfData,
+        type: 'buffer',
+      },
+      options,
+    );
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=timetable.pdf');
+    return res.end(pdfBuffer);
   }
 }

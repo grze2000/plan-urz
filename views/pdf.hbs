@@ -8,13 +8,13 @@
       href='https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap'
       rel='stylesheet'
     />
-    <link rel='stylesheet' href='/css/styles.css' />
-    {{!-- <style>
+    {{! <link rel='stylesheet' href='/css/pdf.css' /> }}
+    <style>
       body { font-family: 'Roboto', sans-serif; margin: 0; padding: 1em; } .week
-      { display: flex; gap: 1em; } h2 { text-align: center; } @media screen and
-      (max-width: 600px) { .week { flex-direction: column; width: 100%; } } .day
-      { flex: 1; } .lessons { display: flex; flex-direction: column; gap: 1em; }
-      .lesson { padding: .5em; border-radius: 5px; color: #111111; }
+      { text-align: center; } h2 { text-align: center; margin: 0; } .day {
+      display: inline-block; vertical-align: top; width: calc(20% - 1em); }
+      .day:not(:last-child) { padding-right: 1em; } .lesson { padding: 0.5em;
+      border-radius: 5px; color: #111111; margin-bottom: 1em; }
       .lesson:nth-child(n) { background-color: #ffd1dc; border: 1px solid
       #d6a1ac; } .lesson:nth-child(2n) { background-color: #aedff7; border: 1px
       solid #7caecc; } .lesson:nth-child(3n) { background-color: #dfffc5;
@@ -23,18 +23,19 @@
       .lesson:nth-child(6n) { background-color: #b2f2d0; } .lesson:nth-child(7n)
       { background-color: #ffa6a1; } .lesson:nth-child(8n) { background-color:
       #aec6ff; } .lesson:nth-child(9n) { background-color: #fffcb5; }
-      .lesson:nth-child(10n) { background-color: #ffdee9; } .row { display:
-      flex; justify-content: space-between; } .hours { font-weight: bold; }
-      .subject { font-weight: bold; text-align: right; } .teacher { font-size:
-      .85em; text-align: right; } .dayName { text-align: center; } .content {
-      display: flex; gap: .5em; margin-top: 1em; } .right { margin-left: auto; }
-    </style> --}}
+      .lesson:nth-child(10n) { background-color: #ffdee9; } .table { display:
+      table; } .row { display: table-row; } .hours { font-weight: bold;
+      text-align: left; display: table-cell; width: 1%; white-space: nowrap; }
+      .subjectAndTeacher { display: table-cell; text-align: right; width: auto;
+      } .subject { font-weight: bold; text-align: right; } .teacher { font-size:
+      0.85em; text-align: right; } .dayName { text-align: center; } .content {
+      margin-top: 1em; } .content > div:not(.right):not(.clear) { float: left; }
+      .content > div:first-child { margin-right: 6px; } .right { text-align:
+      right; float: right; } .clear { clear: both; }
+    </style>
     <title>App</title>
   </head>
   <body>
-    <button class="btn">
-      <a href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}">Podgląd PDF</a>
-    </button>
     <div class='timetable'>
       {{#with weekA}}
         <h2>Tydzień A</h2>
@@ -45,13 +46,15 @@
               <div class='lessons'>
                 {{#each day as |class|}}
                   <div class='lesson'>
-                    <div class='row'>
-                      <div class='hours'>{{class.start}}
-                        -
-                        {{class.end}}</div>
-                      <div>
-                        <div class='subject'>{{class.subject}}</div>
-                        <div class='teacher'>{{class.teacher}}</div>
+                    <div class='table'>
+                      <div class='row'>
+                        <div class='hours'>{{class.start}}
+                          -
+                          {{class.end}}</div>
+                        <div class='subjectAndTeacher'>
+                          <div class='subject'>{{class.subject}}</div>
+                          <div class='teacher'>{{class.teacher}}</div>
+                        </div>
                       </div>
                     </div>
                     <div class='content'>
@@ -60,6 +63,7 @@
                         <b>{{class.groupType}}
                           {{class.groupNumber}}</b></div>
                       <div class='right'>{{class.type}}</div>
+                      <div class='clear'></div>
                     </div>
                   </div>
                 {{/each}}
@@ -68,7 +72,7 @@
           {{/each}}
         </div>
       {{/with}}
-      <div class="spacer"></div>
+
       {{#with weekB}}
         <h2>Tydzień B</h2>
         <div class='week'>
@@ -78,13 +82,15 @@
               <div class='lessons'>
                 {{#each day as |class|}}
                   <div class='lesson'>
-                    <div class='row'>
-                      <div class='hours'>{{class.start}}
-                        -
-                        {{class.end}}</div>
-                      <div>
-                        <div class='subject'>{{class.subject}}</div>
-                        <div class='teacher'>{{class.teacher}}</div>
+                    <div class='table'>
+                      <div class='row'>
+                        <div class='hours'>{{class.start}}
+                          -
+                          {{class.end}}</div>
+                        <div class='subjectAndTeacher'>
+                          <div class='subject'>{{class.subject}}</div>
+                          <div class='teacher'>{{class.teacher}}</div>
+                        </div>
                       </div>
                     </div>
                     <div class='content'>
@@ -93,6 +99,7 @@
                         <b>{{class.groupType}}
                           {{class.groupNumber}}</b></div>
                       <div class='right'>{{class.type}}</div>
+                      <div class='clear'></div>
                     </div>
                   </div>
                 {{/each}}

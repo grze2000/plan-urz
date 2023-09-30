@@ -23,8 +23,13 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
+TODO
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+[] Generowanie pdfa z planem w ersji do wydruku - zapisywanie plików według filtrów, naspisywanie istniejących
+[] Podsumowanie zakresu godzin w danym dniu przy nazwie dnia
+[] Oznaczenie koloramu według przedmiotu
+[] Możliwość wyboru filtów na stronie
+[] Oznacznia długości przerw pomiędzy zajęciami jeśli wybrano filtr grupy ćwiczeniowej lub warsztatowej
 
 ## Installation
 

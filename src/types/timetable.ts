@@ -22,3 +22,10 @@ export type TimeTableType = {
   weekA: TimeTableWeekType;
   weekB: TimeTableWeekType;
 };
+
+export type FiltersType = {
+  filters: {
+    exerciseGroup?: number;
+    workshopGroup?: number;
+  }
+}

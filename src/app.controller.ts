@@ -1,6 +1,7 @@
-import { Controller, Get, Query, Render } from '@nestjs/common';
+import { Controller, Get, Query, Render, Res, StreamableFile } from '@nestjs/common';
 import { AppService } from './app.service';
-import { TimeTableType } from './types/timetable';
+import { FiltersType, TimeTableType } from './types/timetable';
+import { Response } from 'express';
 
 @Controller()
 export class AppController {
@@ -11,7 +12,16 @@ export class AppController {
   getTimeTable(
     @Query('exerciseGroup') exerciseGroup: number,
     @Query('workshopGroup') workshopGroup: number,
-  ): Promise<TimeTableType> {
+  ): Promise<TimeTableType & FiltersType> {
     return this.appService.getTimeTable(exerciseGroup, workshopGroup);
+  }
+  
+  @Get("/pdf")
+  generatePdf(
+    @Query('exerciseGroup') exerciseGroup: number,
+    @Query('workshopGroup') workshopGroup: number,
+    @Res() res: Response
+  ) {
+    return this.appService.generatePdf(res, exerciseGroup, workshopGroup);
   }
 }

@@ -4,31 +4,25 @@ body {
   padding: 1em;
 }
 .week {
-  display: flex;
-  gap: 1em;
+  text-align: center;
 }
 h2 {
   text-align: center;
   margin: 0;
 }
-@media screen and (max-width: 600px) {
-  .week {
-    flex-direction: column;
-    width: 100%;
-  }
-}
 .day {
-  flex: 1;
+  display: inline-block;
+  vertical-align: top;
+  width: calc(20% - 1em);
 }
-.lessons {
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
+.day:not(:last-child) {
+  padding-right: 1em;
 }
 .lesson {
-  padding: .5em;
+  padding: 0.5em;
   border-radius: 5px;
   color: #111111;
+  margin-bottom: 1em;
 }
 .lesson:nth-child(n) {
   background-color: #ffd1dc;
@@ -63,50 +57,48 @@ h2 {
 .lesson:nth-child(10n) {
   background-color: #ffdee9;
 }
+.table {
+  display: table;
+}
 .row {
-  display: flex;
-  justify-content: space-between;
+  display: table-row;
 }
 .hours {
   font-weight: bold;
+  text-align: left;
+  display: table-cell;
+  width: 1%;
+  white-space: nowrap;
+}
+.subjectAndTeacher {
+  display: table-cell;
+  text-align: right;
+  width: auto;
 }
 .subject {
   font-weight: bold;
   text-align: right;
 }
 .teacher {
-  font-size: .85em;
+  font-size: 0.85em;
   text-align: right;
 }
 .dayName {
   text-align: center;
 }
 .content {
-  display: flex;
-  gap: .5em;
   margin-top: 1em;
 }
+.content > div:not(.right):not(.clear) {
+  float: left;
+}
+.content > div:first-child {
+  margin-right: 6px;
+}
 .right {
-  margin-left: auto;
+  text-align: right;
+  float: right;
 }
-.btn {
-  padding: 1em 1.5em;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  background-color: #B931FC;
-  color: white;
-  transition: color .5s;
-  box-shadow: 3px 3px 10px rgba(0, 0, 0, .4);
-}
-.btn:hover {
-  background-color: #CA4BFF;
-}
-.btn > a {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-.spacer {
-  height: 2em;
+.clear {
+  clear: both;
 }
