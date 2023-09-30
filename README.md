@@ -25,11 +25,11 @@
 ## Description
 TODO
 
-[x] Generowanie pdfa z planem w wersji do wydruku
-[] Podsumowanie zakresu godzin w danym dniu przy nazwie dnia
-[] Oznaczenie koloramu według przedmiotu
-[] Możliwość wyboru filtów na stronie
-[] Oznacznia długości przerw pomiędzy zajęciami jeśli wybrano filtr grupy ćwiczeniowej lub warsztatowej
+- [x] Generowanie pdfa z planem w wersji do wydruku
+- [ ] Podsumowanie zakresu godzin w danym dniu przy nazwie dnia
+- [ ] Oznaczenie koloramu według przedmiotu
+- [ ] Możliwość wyboru filtów na stronie
+- [ ] Oznacznia długości przerw pomiędzy zajęciami jeśli wybrano filtr grupy ćwiczeniowej lub warsztatowej
 
 ## Installation
 
