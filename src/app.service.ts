@@ -1,9 +1,9 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { parse } from 'node-html-parser';
 import * as crawler from 'crawler-request';
 import { FiltersType, TimeTableDayType, TimeTableType } from './types/timetable';
-import { createReadStream, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as pdf from 'pdf-creator-node';
 import { Response } from 'express';
