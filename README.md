@@ -25,7 +25,7 @@
 ## Description
 TODO
 
-[] Generowanie pdfa z planem w ersji do wydruku - zapisywanie plików według filtrów, naspisywanie istniejących
+[x] Generowanie pdfa z planem w wersji do wydruku
 [] Podsumowanie zakresu godzin w danym dniu przy nazwie dnia
 [] Oznaczenie koloramu według przedmiotu
 [] Możliwość wyboru filtów na stronie
