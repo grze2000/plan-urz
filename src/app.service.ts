@@ -128,6 +128,11 @@ const options = {
   format: 'Legal',
   orientation: 'landscape',
   border: '10mm',
+  childProcessOptions: {
+    env: {
+      OPENSSL_CONF: '/dev/null',
+    },
+  }
 };
 
 @Injectable()
