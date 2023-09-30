@@ -2,6 +2,7 @@ export type TimeTableDayType = {
   start: string;
   end: string;
   subject: string;
+  teacher: string;
   room: string;
   group: string;
   groupType: string;

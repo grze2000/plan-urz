@@ -1,22 +1,14 @@
 <html>
   <head>
     <meta charset='utf-8' />
+    <link rel='preconnect' href='https://fonts.googleapis.com' />
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+    <link
+      href='https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap'
+      rel='stylesheet'
+    />
+    <link rel='stylesheet' href='../css/styles.css' />
     <title>App</title>
-    <style>
-      .week { display: flex; gap: 5px; } .day { } .lessons { display: flex;
-      flex-direction: column; gap: 1em; } .lesson { padding: 1em; border-radius:
-      5px; color: #111111; } .lesson:nth-child(n) { background-color: #FFD1DC; border: 1px solid
-      #D6A1AC;
-      } .lesson:nth-child(2n) { background-color: #AEDFF7; border: 1px solid
-      #7CAECC; } .lesson:nth-child(3n) { background-color:
-      #DFFFC5; border: 1px solid #B3CC97; }
-      .lesson:nth-child(4n) { background-color: #D9CDEE; } .lesson:nth-child(5n)
-      { background-color: #FFE4C4; } .lesson:nth-child(6n) { background-color:
-      #B2F2D0; } .lesson:nth-child(7n) { background-color: #FFA6A1; }
-      .lesson:nth-child(8n) { background-color: #AEC6FF; } .lesson:nth-child(9n)
-      { background-color: #FFFCB5; } .lesson:nth-child(10n) { background-color:
-      #FFDEE9; } .row { display: flex; justify-content: space-between; }
-    </style>
   </head>
   <body>
     <div class='timetable'>
@@ -25,22 +17,25 @@
         <div class='week'>
           {{#each this as |day dayName|}}
             <div class='day'>
-              <h3>{{dayName}}</h3>
+              <h3 class='dayName'>{{dayName}}</h3>
               <div class='lessons'>
                 {{#each day as |class|}}
                   <div class='lesson'>
                     <div class='row'>
-                      <div>{{class.start}}
+                      <div class='hours'>{{class.start}}
                         -
                         {{class.end}}</div>
-                      <div>{{class.subject}}</div>
+                      <div>
+                        <div class='subject'>{{class.subject}}</div>
+                        <div class='teacher'>{{class.teacher}}</div>
+                      </div>
                     </div>
-                    <strong>Pokój:</strong>
-                    {{class.room}}
-                    <br />
-                    <strong>Typ grupy:</strong>
-                    {{class.groupType}}
-                    {{class.groupNumber}}
+                    <div class='content'>
+                      <div>Sala <b>{{class.room}}</b>,</div>
+                      <div>grupa <b>{{class.groupType}}
+                        {{class.groupNumber}}</b></div>
+                      <div class='right'>{{class.type}}</div>
+                    </div>
                   </div>
                 {{/each}}
               </div>
@@ -54,24 +49,25 @@
         <div class='week'>
           {{#each this as |day dayName|}}
             <div class='day'>
-              <h3>{{dayName}}</h3>
+              <h3 class='dayName'>{{dayName}}</h3>
               <div class='lessons'>
                 {{#each day as |class|}}
                   <div class='lesson'>
-                    <strong>Przedmiot:</strong>
-                    {{class.subject}}
-                    <br />
-                    <strong>Godziny:</strong>
-                    {{class.start}}
-                    -
-                    {{class.end}}
-                    <br />
-                    <strong>Pokój:</strong>
-                    {{class.room}}
-                    <br />
-                    <strong>Typ grupy:</strong>
-                    {{class.groupType}}
-                    {{class.groupNumber}}
+                    <div class='row'>
+                      <div class='hours'>{{class.start}}
+                        -
+                        {{class.end}}</div>
+                      <div>
+                        <div class='subject'>{{class.subject}}</div>
+                        <div class='teacher'>{{class.teacher}}</div>
+                      </div>
+                    </div>
+                    <div class='content'>
+                      <div>Sala <b>{{class.room}}</b>,</div>
+                      <div>grupa <b>{{class.groupType}}
+                        {{class.groupNumber}}</b></div>
+                      <div class='right'>{{class.type}}</div>
+                    </div>
                   </div>
                 {{/each}}
               </div>

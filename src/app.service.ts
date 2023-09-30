@@ -2,11 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { parse } from 'node-html-parser';
 import * as crawler from 'crawler-request';
-import {
-  TimeTableDayType,
-  TimeTableType,
-  TimeTableWeekType,
-} from './types/timetable';
+import { TimeTableDayType, TimeTableType } from './types/timetable';
 
 const timetableUrl =
   'https://www.ur.edu.pl/pl/kolegia/kolegium-nauk-spolecznych/student/kierunki-studiow-programy-rozklady-sylabusy/pedagogika/rozklady-zajec';
@@ -26,18 +22,28 @@ const getSubstringFrom = (string, string1) => {
 const findRowsAndGetValues = (text) => {
   const trimedText = text.trim().replaceAll(/\n/g, '');
   const regex =
-    /(\d{1,2}:\d{1,2})(\d{1,2}:\d{1,2})([\p{L} -\.]+)(\d+)([\p{L} \.]+ ([\p{L}]+\. )(\d|OA(?: Orlof)?))(ćw\.|war\.|lektorat|wykład)/gmu;
+    /(\d{1,2}:\d{1,2})(\d{1,2}:\d{1,2})((?:(?!ul\.)[\p{L} -\.])+)((?:ul\. ?[\p{L} -\.]+ ?)?\d+)([\p{L} \.]+ ([\p{L}]+\. )(\d|OA(?: Orlof)?))(ćw\.|war\.|lektorat|wykład)/gmu;
   let matches;
   const results = [];
 
   while ((matches = regex.exec(trimedText)) !== null) {
+    const boundaryIndex = matches[3].lastIndexOf(matches[3].match(/[a-z][A-Z]/g)?.pop() || '');    
+    const location = matches[4].startsWith('ul.')
+      ? matches[4].split(/(ul\.[\p{L} -\.]+)/u).join(' ')
+      : matches[4];
+
     results.push({
       start: matches[1],
       end: matches[2],
-      subject: matches[3],
-      room: matches[4],
+      subject: boundaryIndex !== -1
+        ? matches[3].slice(boundaryIndex + 1)
+        : matches[3],
+      teacher: boundaryIndex !== -1
+        ? matches[3].slice(0, boundaryIndex + 1)
+        : matches[3],
+      room: location,
       group: matches[5],
-      groupType: matches[6],
+      groupType: ['ćw. ', 'war. '].includes(matches[6]) ? matches[6] : '',
       groupNumber: matches[7],
       type: matches[8],
     });
