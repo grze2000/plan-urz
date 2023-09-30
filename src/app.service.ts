@@ -127,6 +127,8 @@ function filterClassesByGroup(
 const options = {
   format: 'Legal',
   orientation: 'landscape',
+  width: "14in",
+  height: "8.5in",
   border: '10mm',
   childProcessOptions: {
     env: {
