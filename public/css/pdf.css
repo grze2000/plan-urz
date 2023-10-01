@@ -25,39 +25,6 @@ h2 {
   color: #111111;
   margin-bottom: 1em;
 }
-.lesson:nth-child(n) {
-  background-color: #ffd1dc;
-  border: 1px solid #d6a1ac;
-}
-.lesson:nth-child(2n) {
-  background-color: #aedff7;
-  border: 1px solid #7caecc;
-}
-.lesson:nth-child(3n) {
-  background-color: #dfffc5;
-  border: 1px solid #b3cc97;
-}
-.lesson:nth-child(4n) {
-  background-color: #d9cdee;
-}
-.lesson:nth-child(5n) {
-  background-color: #ffe4c4;
-}
-.lesson:nth-child(6n) {
-  background-color: #b2f2d0;
-}
-.lesson:nth-child(7n) {
-  background-color: #ffa6a1;
-}
-.lesson:nth-child(8n) {
-  background-color: #aec6ff;
-}
-.lesson:nth-child(9n) {
-  background-color: #fffcb5;
-}
-.lesson:nth-child(10n) {
-  background-color: #ffdee9;
-}
 .table {
   display: table;
 }
@@ -86,6 +53,12 @@ h2 {
 }
 .dayName {
   text-align: center;
+  margin-bottom: 0;
+}
+.dayHours {
+  text-align: center;
+  margin-bottom: 1em;
+  margin-top: 0;
 }
 .content {
   margin-top: 1em;

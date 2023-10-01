@@ -20,9 +20,13 @@
           {{#each this as |day dayName|}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
+              <p class='dayHours'>{{day.hours}}</p>
               <div class='lessons'>
-                {{#each day as |class|}}
-                  <div class='lesson'>
+                {{#each day.classes as |class|}}
+                  <div
+                    class='lesson'
+                    style='background-color: {{class.color.backgroundColor}}; border: 1px solid {{class.color.borderColor}};'
+                  >
                     <div class='row'>
                       <div class='hours'>{{class.start}}
                         -
@@ -53,9 +57,13 @@
           {{#each this as |day dayName|}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
+              <p class='dayHours'>{{day.hours}}</p>
               <div class='lessons'>
-                {{#each day as |class|}}
-                  <div class='lesson'>
+                {{#each day.classes as |class|}}
+                  <div
+                    class='lesson'
+                    style='background-color: {{class.color.backgroundColor}}; border: 1px solid {{class.color.borderColor}};'
+                  >
                     <div class='row'>
                       <div class='hours'>{{class.start}}
                         -

@@ -14,24 +14,16 @@
       0.5; } .week { text-align: center; } h2 { text-align: center; margin: 0; }
       .day { display: inline-block; vertical-align: top; width: calc(20% - 1em);
       } .day:not(:last-child) { padding-right: 1em; } .lesson { padding: 0.5em;
-      border-radius: 5px; color: #111111; margin-bottom: 1em; }
-      .lesson:nth-child(n) { background-color: #ffd1dc; border: 1px solid
-      #d6a1ac; } .lesson:nth-child(2n) { background-color: #aedff7; border: 1px
-      solid #7caecc; } .lesson:nth-child(3n) { background-color: #dfffc5;
-      border: 1px solid #b3cc97; } .lesson:nth-child(4n) { background-color:
-      #d9cdee; } .lesson:nth-child(5n) { background-color: #ffe4c4; }
-      .lesson:nth-child(6n) { background-color: #b2f2d0; } .lesson:nth-child(7n)
-      { background-color: #ffa6a1; } .lesson:nth-child(8n) { background-color:
-      #aec6ff; } .lesson:nth-child(9n) { background-color: #fffcb5; }
-      .lesson:nth-child(10n) { background-color: #ffdee9; } .table { display:
-      table; } .row { display: table-row; } .hours { font-weight: bold;
+      border-radius: 5px; color: #111111; margin-bottom: 1em; } .table {
+      display: table; } .row { display: table-row; } .hours { font-weight: bold;
       text-align: left; display: table-cell; width: 1%; white-space: nowrap; }
       .subjectAndTeacher { display: table-cell; text-align: right; width: auto;
       } .subject { font-weight: bold; text-align: right; } .teacher { font-size:
-      0.85em; text-align: right; } .dayName { text-align: center; } .content {
-      margin-top: 1em; } .content > div:not(.right):not(.clear) { float: left; }
-      .content > div:first-child { margin-right: 6px; } .right { text-align:
-      right; float: right; } .clear { clear: both; }
+      0.85em; text-align: right; } .dayName { text-align: center; margin-bottom:
+      0; } .dayHours { text-align: center; margin-bottom: 1em; margin-top: 0; }
+      .content { margin-top: 1em; } .content > div:not(.right):not(.clear) {
+      float: left; } .content > div:first-child { margin-right: 6px; } .right {
+      text-align: right; float: right; } .clear { clear: both; }
     </style>
     <title>App</title>
   </head>
@@ -43,9 +35,13 @@
           {{#each this as |day dayName|}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
+              <p class='dayHours'>{{day.hours}}</p>
               <div class='lessons'>
-                {{#each day as |class|}}
-                  <div class='lesson'>
+                {{#each day.classes as |class|}}
+                  <div
+                    class='lesson'
+                    style='background-color: {{class.color.backgroundColor}}; border: 1px solid {{class.color.borderColor}};'
+                  >
                     <div class='table'>
                       <div class='row'>
                         <div class='hours'>{{class.start}}
@@ -79,9 +75,13 @@
           {{#each this as |day dayName|}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
+              <p class='dayHours'>{{day.hours}}</p>
               <div class='lessons'>
-                {{#each day as |class|}}
-                  <div class='lesson'>
+                {{#each day.classes as |class|}}
+                  <div
+                    class='lesson'
+                    style='background-color: {{class.color.backgroundColor}}; border: 1px solid {{class.color.borderColor}};'
+                  >
                     <div class='table'>
                       <div class='row'>
                         <div class='hours'>{{class.start}}

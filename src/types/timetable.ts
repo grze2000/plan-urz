@@ -1,4 +1,4 @@
-export type TimeTableDayType = {
+export type ClassesType = {
   start: string;
   end: string;
   subject: string;
@@ -8,14 +8,23 @@ export type TimeTableDayType = {
   groupType: string;
   groupNumber: string;
   type: string;
+  color: {
+    background: string;
+    border: string;
+  }
+};
+
+export type TimeTableDayType = {
+  hours: string;
+  classes: ClassesType[];
 };
 
 export type TimeTableWeekType = {
-  Poniedziałek: TimeTableDayType[];
-  Wtorek: TimeTableDayType[];
-  Środa: TimeTableDayType[];
-  Czwartek: TimeTableDayType[];
-  Piątek: TimeTableDayType[];
+  Poniedziałek: TimeTableDayType;
+  Wtorek: TimeTableDayType;
+  Środa: TimeTableDayType;
+  Czwartek: TimeTableDayType;
+  Piątek: TimeTableDayType;
 };
 
 export type TimeTableType = {
@@ -27,5 +36,5 @@ export type FiltersType = {
   filters: {
     exerciseGroup?: number;
     workshopGroup?: number;
-  }
-}
+  };
+};
