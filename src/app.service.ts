@@ -33,11 +33,11 @@ const colors = [
   { backgroundColor: '#ff6666', borderColor: '#d64040' },
   { backgroundColor: '#c2f0c2', borderColor: '#94c894' },
   { backgroundColor: '#ffdb4d', borderColor: '#d6b238' },
-  { backgroundColor: '#6666ff', borderColor: '#4040d6' }
+  { backgroundColor: '#6666ff', borderColor: '#4040d6' },
 ];
 
 const classesColors = {};
-  let colorIndex = 0;
+let colorIndex = 0;
 
 const timetableUrl =
   'https://www.ur.edu.pl/pl/kolegia/kolegium-nauk-spolecznych/student/kierunki-studiow-programy-rozklady-sylabusy/pedagogika/rozklady-zajec';
@@ -54,33 +54,84 @@ const getSubstringFrom = (string, string1) => {
     .trim();
 };
 
-const findRowsAndGetValues = (text): TimeTableDayType => {
+function timeDifference(time1, time2) {
+  function convertToMinutes(time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  const minutes1 = convertToMinutes(time1);
+  const minutes2 = convertToMinutes(time2);
+  const diff = minutes2 - minutes1;
+
+  function formatDifference(minutesDiff) {
+    const absDiff = Math.abs(minutesDiff);
+    const h = Math.floor(absDiff / 60);
+    const m = absDiff % 60;
+    return `${h}h ${m}min`;
+  }
+
+  return {
+    formatted:
+      diff >= 0 ? formatDifference(diff) : `-${formatDifference(diff)}`,
+    minutes: diff,
+  };
+}
+
+const findRowsAndGetValues = (
+  text,
+  exerciseGroup,
+  workshopGroup,
+): TimeTableDayType => {
   const trimedText = text.trim().replaceAll(/\n/g, '');
   const regex =
     /(\d{1,2}:\d{1,2})(\d{1,2}:\d{1,2})((?:(?!ul\.)[\p{L} -\.])+)((?:ul\. ?[\p{L} -\.]+ ?)?\d+)([\p{L} \.]+ ([\p{L}]+\. )(\d|OA(?: Orlof)?))(ćw\.|war\.|lektorat|wykład)/gmu;
   let matches;
   const results = [];
   const hourRange = {
-    start: '',
-    end: '',
-  }
+    start: null,
+    end: null,
+  };
 
   while ((matches = regex.exec(trimedText)) !== null) {
+    if(
+      (exerciseGroup || workshopGroup) &&
+      !(
+        (matches[6] === 'ćw. ' && Number(matches[7]) === Number(exerciseGroup)) ||
+        (matches[6] === 'war. ' && Number(matches[7]) === Number(workshopGroup)) ||
+        !['ćw. ', 'war. '].includes(matches[6])
+      )
+    ) continue;
+
     const boundaryIndex = matches[3].lastIndexOf(
       matches[3].match(/[a-z][A-Z]/g)?.pop() || '',
     );
     const location = matches[4].startsWith('ul.')
       ? matches[4].split(/(ul\.[\p{L} -\.]+)/u).join(' ')
       : matches[4];
-    const subject = boundaryIndex !== -1 ? matches[3].slice(boundaryIndex + 1) : matches[3];
+    const subject =
+      boundaryIndex !== -1 ? matches[3].slice(boundaryIndex + 1) : matches[3];
     let color = {};
 
-    if(subject.replace(/[ ]/, '') in classesColors) {
+    if (subject.replace(/[ ]/, '') in classesColors) {
       color = classesColors[subject.replace(/[ ]/, '')];
     } else {
-      color = colors[colorIndex]
+      color = colors[colorIndex];
       classesColors[subject.replace(/[ ]/, '')] = color;
       colorIndex++;
+    }
+
+    if (
+      !hourRange.start ||
+      timeDifference(hourRange.start, matches[1]).minutes < 0
+    ) {
+      hourRange.start = matches[1];
+    }
+    if (
+      !hourRange.end ||
+      timeDifference(hourRange.end, matches[1]).minutes > 0
+    ) {
+      hourRange.end = matches[2];
     }
 
     results.push({
@@ -100,12 +151,12 @@ const findRowsAndGetValues = (text): TimeTableDayType => {
     });
   }
   return {
-    hours: '',
+    hours: `(${hourRange.start}-${hourRange.end})`,
     classes: results,
   };
 };
 
-const getWeekDays = (text): TimeTableWeekType => {
+const getWeekDays = (text, exerciseGroup, workshopGroup): TimeTableWeekType => {
   const weekSchedule: TimeTableWeekType = {
     Poniedziałek: { hours: '', classes: [] },
     Wtorek: { hours: '', classes: [] },
@@ -118,12 +169,20 @@ const getWeekDays = (text): TimeTableWeekType => {
     if (parseInt(dayIndex) === 0) {
       weekSchedule[day] = findRowsAndGetValues(
         getSubstringBetween(text, 'Uwagi', weekdays[weekdays.indexOf(day) + 1]),
+        exerciseGroup,
+        workshopGroup,
       );
     } else if (parseInt(dayIndex) === weekdays.length - 1) {
-      weekSchedule[day] = findRowsAndGetValues(getSubstringFrom(text, day));
+      weekSchedule[day] = findRowsAndGetValues(
+        getSubstringFrom(text, day),
+        exerciseGroup,
+        workshopGroup,
+      );
     } else {
       weekSchedule[day] = findRowsAndGetValues(
         getSubstringBetween(text, day, weekdays[weekdays.indexOf(day) + 1]),
+        exerciseGroup,
+        workshopGroup,
       );
     }
   }
@@ -132,10 +191,18 @@ const getWeekDays = (text): TimeTableWeekType => {
 
 const weekdays = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek'];
 
-function parseSchedule(text): TimeTableType {
+function parseSchedule(text, exerciseGroup, workshopGroup): TimeTableType {
   const timetable: TimeTableType = {
-    weekA: getWeekDays(getSubstringBetween(text, 'Tydzień A', 'Tydzień B')),
-    weekB: getWeekDays(getSubstringFrom(text, 'Tydzień B')),
+    weekA: getWeekDays(
+      getSubstringBetween(text, 'Tydzień A', 'Tydzień B'),
+      exerciseGroup,
+      workshopGroup,
+    ),
+    weekB: getWeekDays(
+      getSubstringFrom(text, 'Tydzień B'),
+      exerciseGroup,
+      workshopGroup,
+    ),
   };
   // console.log(timetable.weekA.Poniedziałek.classes);
   return timetable;
@@ -214,10 +281,14 @@ export class AppService {
     }/${pdfLink.getAttribute('href')}`;
 
     const response = await crawler(fulllPdfUrl);
-    const results = parseSchedule(response.text) as TimeTableType;
+    const results = parseSchedule(
+      response.text,
+      exerciseGroup,
+      workshopGroup,
+    ) as TimeTableType;
 
     return {
-      ...filterClassesByGroup(results, exerciseGroup, workshopGroup),
+      ...results,
       filters: { exerciseGroup, workshopGroup },
     };
   }
@@ -239,9 +310,12 @@ export class AppService {
     }/${pdfLink.getAttribute('href')}`;
 
     const response = await crawler(fulllPdfUrl);
-    const results = parseSchedule(response.text) as TimeTableType;
+    const pdfData = parseSchedule(
+      response.text,
+      exerciseGroup,
+      workshopGroup,
+    ) as TimeTableType;
 
-    const pdfData = filterClassesByGroup(results, exerciseGroup, workshopGroup);
     const html = readFileSync(
       join(__dirname, '..', 'views', 'pdf.hbs'),
       'utf8',
