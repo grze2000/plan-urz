@@ -253,7 +253,7 @@ const options = {
   orientation: 'landscape',
   width: '14in',
   height: '8.5in',
-  border: '10mm',
+  border: '5mm',
   childProcessOptions: {
     env: {
       OPENSSL_CONF: '/dev/null',
