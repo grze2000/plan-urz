@@ -12,7 +12,33 @@
     <title>App</title>
   </head>
   <body>
-    <a class='btn' href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}">Podgląd PDF</a>
+    <a class="btn hamburger" id="hamburger">&equiv;</a>
+    <div class='buttons mb-2 hidden' id="actions">
+      <a class='btn' href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">Podgląd PDF</a>
+      <a class='btn-filter {{#if filters.skipOrlof}}btn-filter-active{{/if}}' href="/?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#unless filters.skipOrlof}}&skipOrlof=true{{/unless}}">OA Orlof</a>
+      <div>
+        <div class="mb-1">Grupa warsztatowa:</div>
+        <div class="row-2">
+          {{#each workshopGroups}}
+            <a class="btn-filter {{#if this.active}}btn-filter-active{{/if}}" href="/?{{#if ../filters.exerciseGroup}}exerciseGroup={{../filters.exerciseGroup}}{{/if}}&workshopGroup={{this.number}}{{#if ../filters.skipOrlof}}&skipOrlof=true{{/if}}">
+              {{this.number}}
+            </a>
+          {{/each}}
+          <a class="btn-filter {{#unless filters.workshopGroup}}btn-filter-active{{/unless}}" href="/?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">✖</a>
+        </div>
+      </div>
+      <div>
+        <div  class="mb-1">Grupa ćwiczeniowa:</div>
+        <div class="row-2">
+          {{#each exerciseGroups}}
+            <a class="btn-filter {{#if this.active}}btn-filter-active{{/if}}" href="/?exerciseGroup={{this.number}}{{#if ../filters.workshopGroup}}&workshopGroup={{../filters.workshopGroup}}{{/if}}{{#if ../filters.skipOrlof}}&skipOrlof=true{{/if}}">
+              {{this.number}}
+            </a>
+          {{/each}}
+          <a class="btn-filter {{#unless filters.exerciseGroup}}btn-filter-active{{/unless}}" href="/?{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">✖</a>
+        </div>
+      </div>
+    </div>
     <div class='timetable'>
       {{#with weekA}}
         <h2>Tydzień A</h2>
@@ -88,6 +114,12 @@
         </div>
       {{/with}}
     </div>
-
+    <script>
+      const hamburger = document.querySelector('#hamburger')
+      hamburger.addEventListener('click', () => {
+        const actions = document.querySelector('#actions')
+        actions.classList.toggle('hidden')
+      })
+    </script>
   </body>
 </html>

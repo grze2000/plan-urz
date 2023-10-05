@@ -38,3 +38,12 @@ export type FiltersType = {
     workshopGroup?: number;
   };
 };
+
+export type OtherData = {
+  exerciseGroups: Array<{
+    active: boolean;
+  }>;
+  workshopGroups: Array<{
+    active: boolean;
+  }>;
+}

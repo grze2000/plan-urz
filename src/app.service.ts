@@ -4,6 +4,7 @@ import { parse } from 'node-html-parser';
 import * as crawler from 'crawler-request';
 import {
   FiltersType,
+  OtherData,
   TimeTableDayType,
   TimeTableType,
   TimeTableWeekType,
@@ -80,8 +81,7 @@ function timeDifference(time1, time2) {
 
 const findRowsAndGetValues = (
   text,
-  exerciseGroup,
-  workshopGroup,
+  { exerciseGroup, workshopGroup, skipOrlof },
 ): TimeTableDayType => {
   const trimedText = text.trim().replaceAll(/\n/g, '');
   const regex =
@@ -94,14 +94,18 @@ const findRowsAndGetValues = (
   };
 
   while ((matches = regex.exec(trimedText)) !== null) {
-    if(
-      (exerciseGroup || workshopGroup) &&
-      !(
-        (matches[6] === 'ćw. ' && Number(matches[7]) === Number(exerciseGroup)) ||
-        (matches[6] === 'war. ' && Number(matches[7]) === Number(workshopGroup)) ||
-        !['ćw. ', 'war. '].includes(matches[6])
-      )
-    ) continue;
+    if (
+      (skipOrlof === 'true' && matches[7] === 'OA Orlof') ||
+      ((exerciseGroup || workshopGroup) &&
+        !(
+          (matches[6] === 'ćw. ' &&
+            Number(matches[7]) === Number(exerciseGroup)) ||
+          (matches[6] === 'war. ' &&
+            Number(matches[7]) === Number(workshopGroup)) ||
+          !['ćw. ', 'war. '].includes(matches[6])
+        ))
+    )
+      continue;
 
     const boundaryIndex = matches[3].lastIndexOf(
       matches[3].match(/[a-z][A-Z]/g)?.pop() || '',
@@ -156,7 +160,7 @@ const findRowsAndGetValues = (
   };
 };
 
-const getWeekDays = (text, exerciseGroup, workshopGroup): TimeTableWeekType => {
+const getWeekDays = (text, filters): TimeTableWeekType => {
   const weekSchedule: TimeTableWeekType = {
     Poniedziałek: { hours: '', classes: [] },
     Wtorek: { hours: '', classes: [] },
@@ -169,20 +173,17 @@ const getWeekDays = (text, exerciseGroup, workshopGroup): TimeTableWeekType => {
     if (parseInt(dayIndex) === 0) {
       weekSchedule[day] = findRowsAndGetValues(
         getSubstringBetween(text, 'Uwagi', weekdays[weekdays.indexOf(day) + 1]),
-        exerciseGroup,
-        workshopGroup,
+        filters,
       );
     } else if (parseInt(dayIndex) === weekdays.length - 1) {
       weekSchedule[day] = findRowsAndGetValues(
         getSubstringFrom(text, day),
-        exerciseGroup,
-        workshopGroup,
+        filters,
       );
     } else {
       weekSchedule[day] = findRowsAndGetValues(
         getSubstringBetween(text, day, weekdays[weekdays.indexOf(day) + 1]),
-        exerciseGroup,
-        workshopGroup,
+        filters,
       );
     }
   }
@@ -191,18 +192,13 @@ const getWeekDays = (text, exerciseGroup, workshopGroup): TimeTableWeekType => {
 
 const weekdays = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek'];
 
-function parseSchedule(text, exerciseGroup, workshopGroup): TimeTableType {
+function parseSchedule(text, filters): TimeTableType {
   const timetable: TimeTableType = {
     weekA: getWeekDays(
       getSubstringBetween(text, 'Tydzień A', 'Tydzień B'),
-      exerciseGroup,
-      workshopGroup,
+      filters,
     ),
-    weekB: getWeekDays(
-      getSubstringFrom(text, 'Tydzień B'),
-      exerciseGroup,
-      workshopGroup,
-    ),
+    weekB: getWeekDays(getSubstringFrom(text, 'Tydzień B'), filters),
   };
   // console.log(timetable.weekA.Poniedziałek.classes);
   return timetable;
@@ -265,10 +261,11 @@ const options = {
 export class AppService {
   constructor(private readonly httpService: HttpService) {}
 
-  async getTimeTable(
-    exerciseGroup: number,
-    workshopGroup: number,
-  ): Promise<TimeTableType & FiltersType> {
+  async getTimeTable(filters: {
+    exerciseGroup: number;
+    workshopGroup: number;
+    skipOrlof: boolean;
+  }): Promise<TimeTableType & FiltersType & OtherData> {
     const data = await this.httpService.axiosRef.get(timetableUrl);
     const root = parse(data.data);
     const pdfLink = root.querySelector('.ce_text > p:nth-child(2) a');
@@ -281,22 +278,29 @@ export class AppService {
     }/${pdfLink.getAttribute('href')}`;
 
     const response = await crawler(fulllPdfUrl);
-    const results = parseSchedule(
-      response.text,
-      exerciseGroup,
-      workshopGroup,
-    ) as TimeTableType;
+    const results = parseSchedule(response.text, filters) as TimeTableType;
 
     return {
       ...results,
-      filters: { exerciseGroup, workshopGroup },
+      filters,
+      exerciseGroups: Array.from({ length: 4 }, (_, i) => ({
+        active: i + 1 === Number(filters.exerciseGroup),
+        number: i + 1,
+      })),
+      workshopGroups: Array.from({ length: 8 }, (_, i) => ({
+        active: i + 1 === Number(filters.workshopGroup),
+        number: i + 1,
+      })),
     };
   }
 
   async generatePdf(
     res: Response,
-    exerciseGroup: number,
-    workshopGroup: number,
+    filters: {
+      exerciseGroup: number;
+      workshopGroup: number;
+      skipOrlof: boolean;
+    },
   ) {
     const data = await this.httpService.axiosRef.get(timetableUrl);
     const root = parse(data.data);
@@ -310,11 +314,7 @@ export class AppService {
     }/${pdfLink.getAttribute('href')}`;
 
     const response = await crawler(fulllPdfUrl);
-    const pdfData = parseSchedule(
-      response.text,
-      exerciseGroup,
-      workshopGroup,
-    ) as TimeTableType;
+    const pdfData = parseSchedule(response.text, filters) as TimeTableType;
 
     const html = readFileSync(
       join(__dirname, '..', 'views', 'pdf.hbs'),
