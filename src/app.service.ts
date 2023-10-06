@@ -69,7 +69,7 @@ function timeDifference(time1, time2) {
     const absDiff = Math.abs(minutesDiff);
     const h = Math.floor(absDiff / 60);
     const m = absDiff % 60;
-    return `${h}h ${m}min`;
+    return `${h > 0 ? `${h}h ` : ''}${m}min`;
   }
 
   return {
@@ -138,6 +138,15 @@ const findRowsAndGetValues = (
       hourRange.end = matches[2];
     }
 
+    const breakBefore =
+      (results.length > 0 && (workshopGroup || workshopGroup))
+        ? timeDifference(results[results.length - 1].end, matches[1])
+        : { formatted: '', minutes: 0 };
+    if (breakBefore.minutes < 0) {
+      breakBefore.formatted = '';
+      breakBefore.minutes = 0;
+    }
+
     results.push({
       start: matches[1],
       end: matches[2],
@@ -152,6 +161,7 @@ const findRowsAndGetValues = (
       groupNumber: matches[7],
       type: matches[8],
       color,
+      breakBefore,
     });
   }
   return {
@@ -202,46 +212,6 @@ function parseSchedule(text, filters): TimeTableType {
   };
   // console.log(timetable.weekA.Poniedziałek.classes);
   return timetable;
-}
-
-function filterClassesByGroup(
-  timeTable: TimeTableType,
-  exerciseGroup: number,
-  workshopGroup: number,
-): TimeTableType {
-  const filterDay = (day: TimeTableDayType): TimeTableDayType => {
-    return {
-      hours: day.hours,
-      classes: day.classes.filter(
-        (item) =>
-          (!exerciseGroup && !workshopGroup) ||
-          (item.groupType === 'ćw. ' &&
-            Number(item.groupNumber) === Number(exerciseGroup)) ||
-          (item.groupType === 'war. ' &&
-            Number(item.groupNumber) === Number(workshopGroup)) ||
-          !['ćw. ', 'war. '].includes(item.groupType),
-      ),
-    };
-  };
-
-  const filteredTimeTable: TimeTableType = {
-    weekA: {
-      Poniedziałek: filterDay(timeTable.weekA.Poniedziałek),
-      Wtorek: filterDay(timeTable.weekA.Wtorek),
-      Środa: filterDay(timeTable.weekA.Środa),
-      Czwartek: filterDay(timeTable.weekA.Czwartek),
-      Piątek: filterDay(timeTable.weekA.Piątek),
-    },
-    weekB: {
-      Poniedziałek: filterDay(timeTable.weekB.Poniedziałek),
-      Wtorek: filterDay(timeTable.weekB.Wtorek),
-      Środa: filterDay(timeTable.weekB.Środa),
-      Czwartek: filterDay(timeTable.weekB.Czwartek),
-      Piątek: filterDay(timeTable.weekB.Piątek),
-    },
-  };
-
-  return filteredTimeTable;
 }
 
 const options = {

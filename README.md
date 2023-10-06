@@ -23,13 +23,26 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
-TODO
-
+Aplikacja pobierając plan zajęć Uniwersytetu Rzeszowskiego 
+## TODO
+## Aplikacja mobilna
+- [ ] Dodać obsługę PWA
+- [ ] Skonteneryzować aplikację
+- [ ] Deploy na androida
+### Aplikacja web
+- [ ] Dodać inny route z ogólną wersją aplikacji
+- [ ] Wybór kierunku
+- [ ] Migracja z Handlebars na EJS
+- [ ] Migracja z scrapingu pdf na api URZ
+- [ ] Zapisywanie planu zajęć w bazie i porównywanie cronem czy plan się zmienił
+- [ ] Powiadomienia o zmianie planu zajęć 
+- [ ] Po kliknięciu PPM lub przytrzymaniu palcem na zajęciach wyświetlić modal pozwalający na wykluczenie tych zajęć lub całego przedmiotu z planu (zapis zmian w localstorage)
+- [ ] Wyświetlać komunikat u góry np. "1 przedmiot został wykluczony", po kliknięciu komunikatu wyświetlać modal z listą wykluczonych przedmiotów i możliwośćią ich przywrócenia
 - [x] Generowanie pdfa z planem w wersji do wydruku
 - [x] Podsumowanie zakresu godzin w danym dniu przy nazwie dnia
 - [x] Oznaczenie koloramu według przedmiotu
 - [x] Możliwość wyboru filtów na stronie
-- [ ] Oznacznia długości przerw pomiędzy zajęciami jeśli wybrano filtr grupy ćwiczeniowej lub warsztatowej
+- [x] Oznacznia długości przerw pomiędzy zajęciami jeśli wybrano filtr grupy ćwiczeniowej lub warsztatowej
 - [x] Filtrowanie grupy Orlof
 
 ## Installation

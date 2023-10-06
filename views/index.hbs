@@ -15,7 +15,7 @@
     <a class="btn hamburger" id="hamburger">&equiv;</a>
     <div class='buttons mb-2 hidden' id="actions">
       <a class='btn' href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">Podgląd PDF</a>
-      <a class='btn-filter {{#if filters.skipOrlof}}btn-filter-active{{/if}}' href="/?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#unless filters.skipOrlof}}&skipOrlof=true{{/unless}}">OA Orlof</a>
+      <a class='btn-filter {{#unless filters.skipOrlof}}btn-filter-active{{/unless}}' href="/?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#unless filters.skipOrlof}}&skipOrlof=true{{/unless}}">OA Orlof</a>
       <div>
         <div class="mb-1">Grupa warsztatowa:</div>
         <div class="row-2">
@@ -49,6 +49,9 @@
               <p class='dayHours'>{{day.hours}}</p>
               <div class='lessons'>
                 {{#each day.classes as |class|}}
+                  {{#if class.breakBefore.minutes}}
+                    <div class="break">{{class.breakBefore.formatted}}</div>
+                  {{/if}}
                   <div
                     class='lesson'
                     style='background-color: {{class.color.backgroundColor}}; border: 1px solid {{class.color.borderColor}};'
@@ -81,11 +84,15 @@
         <h2>Tydzień B</h2>
         <div class='week'>
           {{#each this as |day dayName|}}
+          {{#if class.breakBefore.minutes}}<div class="break">{{class.breakBefore.formatted}}</div>{{/if}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
               <p class='dayHours'>{{day.hours}}</p>
               <div class='lessons'>
                 {{#each day.classes as |class|}}
+                  {{#if class.breakBefore.minutes}}
+                    <div class="break">{{class.breakBefore.formatted}}</div>
+                  {{/if}}
                   <div
                     class='lesson'
                     style='background-color: {{class.color.backgroundColor}}; border: 1px solid {{class.color.borderColor}};'

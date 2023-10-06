@@ -12,6 +12,10 @@ export type ClassesType = {
     background: string;
     border: string;
   }
+  breakBefore: {
+    formatted: string
+    minutes: number
+  }
 };
 
 export type TimeTableDayType = {

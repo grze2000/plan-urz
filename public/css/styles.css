@@ -135,3 +135,11 @@ h2 {
     display: none;
   }
 }
+.break {
+  background-color: #881a821a;
+  border: 1px solid #881a8226;
+  border-radius: 3px;
+  font-size: 0.9em;
+  padding: 2px;
+  text-align: center;
+}
