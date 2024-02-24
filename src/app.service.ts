@@ -81,8 +81,8 @@ function timeDifference(time1, time2) {
 
   return {
     formatted:
-      diff >= 0 ? formatDifference(diff) : `-${formatDifference(diff)}`,
-    minutes: diff,
+      diff >= 0 ? formatDifference(diff) : "",
+    minutes: diff >= 0 ? diff : 0,
   };
 }
 
@@ -334,6 +334,10 @@ const getWeeekSchedule = (
       .minute(Number(lesson.min))
       .add(Number(lesson.licznik_g) * 45, 'm')
       .format('HH:mm');
+    const previousClass = day.classes[day.classes.length - 1];
+    const breakBeforeMinutes = previousClass
+      ? timeDifference(previousClass.end, classesStart)
+      : { formatted: '', minutes: 0 };
     day.classes.push({
       start: classesStart,
       end: classesEnd,
@@ -345,7 +349,7 @@ const getWeeekSchedule = (
       groupNumber: '-',
       type: lesson.fz_nazwa,
       color: getLessonColor(lesson.p_nazwa),
-      breakBefore: { formatted: '', minutes: 0 },
+      breakBefore: breakBeforeMinutes,
     });
 
     if (
@@ -436,21 +440,6 @@ export class AppService {
       filters: string;
     },
   ) {
-    const data = await this.httpService.axiosRef.get(timetableUrl);
-    const root = parse(data.data);
-    const pdfLink = root.querySelector('.ce_text > p:nth-child(2) a');
-    if (!pdfLink) {
-      throw new Error('No pdf url found');
-    }
-    const timetableUrlObject = new URL(timetableUrl);
-    const fulllPdfUrl = `${timetableUrlObject.protocol}//${
-      timetableUrlObject.hostname
-    }/${pdfLink.getAttribute('href')}`;
-
-    const response = await crawler(fulllPdfUrl);
-    const pdfData = parseSchedule(response.text, allFilters) as TimeTableType;
-    console.log(pdfData);
-
     const timetableWeekA =
       await this.httpService.axiosRef.post<TTimetableResponse>(
         timetableApiUrl,
