@@ -279,6 +279,7 @@ const options = {
 
 const getWeeekSchedule = (
   week: TTimetableResponse,
+  filters: string,
 ): [TimeTableWeekType, string[]] => {
   const weekSchedule: TimeTableWeekType = {
     Poniedziałek: {
@@ -321,7 +322,11 @@ const getWeeekSchedule = (
   const groups = new Set<string>();
   for (const lesson of week) {
     groups.add(lesson.spec);
-
+    if (
+      !filters.split(',').includes(lesson.spec.toLowerCase().replace(/\s/g, ''))
+    ) {
+      continue;
+    }
     const day = weekSchedule[weekdays[dayjs(lesson.pz_data_od).weekday() - 1]];
     const classesStart = `${lesson.godz}:${lesson.min}`;
     const classesEnd = dayjs()
@@ -363,10 +368,11 @@ const getWeeekSchedule = (
 export class AppService {
   constructor(private readonly httpService: HttpService) {}
 
-  async getTimeTable(filters: {
+  async getTimeTable(allFilters: {
     exerciseGroup: number;
     workshopGroup: number;
     skipOrlof: boolean;
+    filters: string;
   }): Promise<TimeTableType & FiltersType & OtherData> {
     const data = await this.httpService.axiosRef.get(timetableUrl);
     const root = parse(data.data);
@@ -380,7 +386,7 @@ export class AppService {
     }/${pdfLink.getAttribute('href')}`;
 
     const response = await crawler(fulllPdfUrl);
-    const results = parseSchedule(response.text, filters) as TimeTableType;
+    const results = parseSchedule(response.text, allFilters) as TimeTableType;
 
     const timetableWeekA =
       await this.httpService.axiosRef.post<TTimetableResponse>(
@@ -401,25 +407,31 @@ export class AppService {
         },
       );
 
-    const [weekA, groupsA] = getWeeekSchedule(timetableWeekA.data);
-    const [weekB, groupsB] = getWeeekSchedule(timetableWeekB.data);
+    const [weekA, groupsA] = getWeeekSchedule(
+      timetableWeekA.data,
+      allFilters.filters,
+    );
+    const [weekB, groupsB] = getWeeekSchedule(
+      timetableWeekB.data,
+      allFilters.filters,
+    );
 
     return {
       ...results,
-      filters,
+      filters: allFilters,
       exerciseGroups: Array.from({ length: 4 }, (_, i) => ({
-        active: i + 1 === Number(filters.exerciseGroup),
+        active: i + 1 === Number(allFilters.exerciseGroup),
         number: i + 1,
       })),
       workshopGroups: Array.from({ length: 8 }, (_, i) => ({
-        active: i + 1 === Number(filters.workshopGroup),
+        active: i + 1 === Number(allFilters.workshopGroup),
         number: i + 1,
       })),
       weekA,
       weekB,
       groups: Array.from(new Set([...groupsA, ...groupsB])).map((group) => ({
         name: group,
-        active: false,
+        active: allFilters.filters.split(',').includes(group.toLowerCase().replace(/\s/g, '')),
       })),
     };
   }

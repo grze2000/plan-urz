@@ -20,11 +20,13 @@ export class AppController {
     @Query('exerciseGroup') exerciseGroup: number,
     @Query('workshopGroup') workshopGroup: number,
     @Query('skipOrlof') skipOrlof: boolean,
+    @Query('filters') filters: string,
   ): Promise<TimeTableType & FiltersType> {
     return this.appService.getTimeTable({
       exerciseGroup,
       workshopGroup,
       skipOrlof,
+      filters,
     });
   }
 

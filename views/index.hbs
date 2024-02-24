@@ -15,12 +15,12 @@
     <a class="btn hamburger" id="hamburger">&equiv;</a>
     <div class='buttons mb-2 hidden' id="actions">
       {{!-- <a class='btn' href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">Podgląd PDF</a> --}}
-      {{!-- <div class="row-2">
+      <div class="row-2">
         {{#each groups}}
           <button class="btn-filter {{#if this.active}}btn-filter-active{{/if}}" href="/">
             {{this.name}}
           </button>
-        {{/each}} --}}
+        {{/each}}
       </div>
     </div>
     <div class='timetable'>
@@ -115,7 +115,7 @@
       const filters = document.querySelectorAll('.btn-filter')
       filters.forEach((filter) => {
         filter.addEventListener('click', () => {
-          filter.classList.toggle('btn-filter-active')
+          filter.setAttribute('disabled', 'disabled')
           const filterText = filter.textContent.toLowerCase().replace(/\s/g, '');
           const queryParams = new URLSearchParams(window.location.search);
           const filtersParam = queryParams.get("filters");
