@@ -323,7 +323,7 @@ const getWeeekSchedule = (
   for (const lesson of week) {
     groups.add(lesson.spec);
     if (
-      !filters.split(',').includes(lesson.spec.toLowerCase().replace(/\s/g, ''))
+      filters && !filters?.split(',').includes(lesson.spec.toLowerCase().replace(/\s/g, ''))
     ) {
       continue;
     }
@@ -431,7 +431,7 @@ export class AppService {
       weekB,
       groups: Array.from(new Set([...groupsA, ...groupsB])).map((group) => ({
         name: group,
-        active: allFilters.filters.split(',').includes(group.toLowerCase().replace(/\s/g, '')),
+        active: allFilters.filters?.split(',').includes(group.toLowerCase().replace(/\s/g, '')),
       })),
     };
   }
