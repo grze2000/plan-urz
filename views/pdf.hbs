@@ -35,8 +35,11 @@
           {{#each this as |day dayName|}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
-              <p class='dayHours'>{{day.hours}}</p>
+              <p class='dayHours'>({{day.hours.start}} - {{day.hours.end}})</p>
               <div class='lessons'>
+                {{#unless day.classes}}
+                  <div class="break">Brak zajęć</div>
+                {{/unless}}
                 {{#each day.classes as |class|}}
                   <div
                     class='lesson'
@@ -54,11 +57,12 @@
                       </div>
                     </div>
                     <div class='content'>
-                      <div>Sala <b>{{class.room}}</b>,</div>
-                      <div>grupa
-                        <b>{{class.groupType}}
-                          {{class.groupNumber}}</b></div>
-                      <div class='right'>{{class.type}}</div>
+                      <div style="text-align: left;">
+                        <div>Sala <b>{{class.room}}</b></div>
+                        <div>Grupa
+                          <b>{{class.group}}</b></div>
+                      </div>
+                      <div class='right' style="margin-top: 1em;">{{class.type}}</div>
                       <div class='clear'></div>
                     </div>
                   </div>
@@ -75,8 +79,11 @@
           {{#each this as |day dayName|}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
-              <p class='dayHours'>{{day.hours}}</p>
+              <p class='dayHours'>({{day.hours.start}} - {{day.hours.end}})</p>
               <div class='lessons'>
+                {{#unless day.classes}}
+                  <div class="break">Brak zajęć</div>
+                {{/unless}}
                 {{#each day.classes as |class|}}
                   <div
                     class='lesson'
@@ -94,11 +101,12 @@
                       </div>
                     </div>
                     <div class='content'>
-                      <div>Sala <b>{{class.room}}</b>,</div>
-                      <div>grupa
-                        <b>{{class.groupType}}
-                          {{class.groupNumber}}</b></div>
-                      <div class='right'>{{class.type}}</div>
+                      <div style="text-align: left;">
+                        <div>Sala <b>{{class.room}}</b></div>
+                        <div>Grupa
+                          <b>{{class.group}}</b></div>
+                      </div>
+                      <div class='right' style="margin-top: 1em;">{{class.type}}</div>
                       <div class='clear'></div>
                     </div>
                   </div>

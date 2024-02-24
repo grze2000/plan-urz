@@ -14,8 +14,8 @@
   <body>
     <a class="btn hamburger" id="hamburger">&equiv;</a>
     <div class='buttons mb-2 hidden' id="actions">
-      {{!-- <a class='btn' href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">Podgląd PDF</a> --}}
       <div class="row-2">
+        <a class='btn' id="generatePdf">Podgląd PDF</a>
         {{#each groups}}
           <button class="btn-filter {{#if this.active}}btn-filter-active{{/if}}" href="/">
             {{this.name}}
@@ -32,6 +32,9 @@
               <h3 class='dayName'>{{dayName}}</h3>
               <p class='dayHours'>({{day.hours.start}} - {{day.hours.end}})</p>
               <div class='lessons'>
+                {{#unless day.classes}}
+                  <div class="break">Brak zajęć</div>
+                {{/unless}}
                 {{#each day.classes as |class|}}
                   {{#if class.breakBefore.minutes}}
                     <div class="break">{{class.breakBefore.formatted}}</div>
@@ -73,6 +76,9 @@
               <h3 class='dayName'>{{dayName}}</h3>
               <p class='dayHours'>({{day.hours.start}} - {{day.hours.end}})</p>
               <div class='lessons'>
+                {{#unless day.classes}}
+                  <div class="break">Brak zajęć</div>
+                {{/unless}}
                 {{#each day.classes as |class|}}
                   {{#if class.breakBefore.minutes}}
                     <div class="break">{{class.breakBefore.formatted}}</div>
@@ -138,6 +144,14 @@
           const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
           window.location.href = newUrl;
         });
+      });
+
+      const generatePdfButton = document.querySelector('#generatePdf');
+      generatePdfButton.addEventListener('click', () => {
+        const queryParams = new URLSearchParams(window.location.search);
+        const currentQueryParams = queryParams.toString();
+        const pdfUrl = `/pdf?${currentQueryParams}`;
+        window.location.href = pdfUrl;
       });
     </script>
   </body>

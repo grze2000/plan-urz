@@ -35,12 +35,14 @@ export class AppController {
     @Query('exerciseGroup') exerciseGroup: number,
     @Query('workshopGroup') workshopGroup: number,
     @Query('skipOrlof') skipOrlof: boolean,
+    @Query('filters') filters: string,
     @Res() res: Response,
   ) {
     return this.appService.generatePdf(res, {
       exerciseGroup,
       workshopGroup,
       skipOrlof,
+      filters
     });
   }
 }

@@ -417,16 +417,7 @@ export class AppService {
     );
 
     return {
-      ...results,
       filters: allFilters,
-      exerciseGroups: Array.from({ length: 4 }, (_, i) => ({
-        active: i + 1 === Number(allFilters.exerciseGroup),
-        number: i + 1,
-      })),
-      workshopGroups: Array.from({ length: 8 }, (_, i) => ({
-        active: i + 1 === Number(allFilters.workshopGroup),
-        number: i + 1,
-      })),
       weekA,
       weekB,
       groups: Array.from(new Set([...groupsA, ...groupsB])).map((group) => ({
@@ -438,10 +429,11 @@ export class AppService {
 
   async generatePdf(
     res: Response,
-    filters: {
+    allFilters: {
       exerciseGroup: number;
       workshopGroup: number;
       skipOrlof: boolean;
+      filters: string;
     },
   ) {
     const data = await this.httpService.axiosRef.get(timetableUrl);
@@ -456,7 +448,37 @@ export class AppService {
     }/${pdfLink.getAttribute('href')}`;
 
     const response = await crawler(fulllPdfUrl);
-    const pdfData = parseSchedule(response.text, filters) as TimeTableType;
+    const pdfData = parseSchedule(response.text, allFilters) as TimeTableType;
+    console.log(pdfData);
+
+    const timetableWeekA =
+      await this.httpService.axiosRef.post<TTimetableResponse>(
+        timetableApiUrl,
+        {
+          zakres_s: 1,
+          kierunek: '1',
+          id: '1630',
+        },
+      );
+    const timetableWeekB =
+      await this.httpService.axiosRef.post<TTimetableResponse>(
+        timetableApiUrl,
+        {
+          zakres_s: 2,
+          kierunek: '1',
+          id: '1630',
+        },
+      );
+
+    const [weekA, groupsA] = getWeeekSchedule(
+      timetableWeekA.data,
+      allFilters.filters,
+    );
+    const [weekB, groupsB] = getWeeekSchedule(
+      timetableWeekB.data,
+      allFilters.filters,
+    );
+    
 
     const html = readFileSync(
       join(__dirname, '..', 'views', 'pdf.hbs'),
@@ -465,7 +487,15 @@ export class AppService {
     const pdfBuffer = await pdf.create(
       {
         html: html,
-        data: pdfData,
+        data: {
+          filters: allFilters,
+      weekA,
+      weekB,
+      groups: Array.from(new Set([...groupsA, ...groupsB])).map((group) => ({
+        name: group,
+        active: allFilters.filters?.split(',').includes(group.toLowerCase().replace(/\s/g, '')),
+      })),
+        },
         type: 'buffer',
       },
       options,

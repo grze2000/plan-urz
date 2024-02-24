@@ -47,10 +47,10 @@ export type FiltersType = {
 };
 
 export type OtherData = {
-  exerciseGroups: Array<{
+  exerciseGroups?: Array<{
     active: boolean;
   }>;
-  workshopGroups: Array<{
+  workshopGroups?: Array<{
     active: boolean;
   }>;
   groups: {
