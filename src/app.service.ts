@@ -1,12 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { parse } from 'node-html-parser';
-import * as crawler from 'crawler-request';
 import {
   FiltersType,
   OtherData,
   TTimetableResponse,
-  TimeTableDayType,
   TimeTableType,
   TimeTableWeekType,
 } from './types/timetable';
@@ -14,9 +11,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as pdf from 'pdf-creator-node';
 import { Response } from 'express';
-import { AxiosResponse } from 'axios';
 import * as dayjs from 'dayjs';
-import { group } from 'console';
 
 const colors = [
   { backgroundColor: '#ffd1dc', borderColor: '#d6a1ac' },
@@ -44,23 +39,8 @@ const colors = [
 const classesColors = {};
 let colorIndex = 0;
 
-const timetableUrl =
-  'https://www.ur.edu.pl/pl/kolegia/kolegium-nauk-spolecznych/student/kierunki-studiow-programy-rozklady-sylabusy/pedagogika/rozklady-zajec';
-
 const timetableApiUrl =
   'https://planurz2.grzegorzbabiarz.com/api/zapytania/planzajec/';
-
-function getSubstringBetween(string, string1, string2) {
-  return string
-    .slice(string.indexOf(string1) + string1.length, string.indexOf(string2))
-    .trim();
-}
-
-const getSubstringFrom = (string, string1) => {
-  return string
-    .slice(string.indexOf(string1) + string1.length, string.length)
-    .trim();
-};
 
 function timeDifference(time1, time2) {
   function convertToMinutes(time) {
@@ -80,179 +60,12 @@ function timeDifference(time1, time2) {
   }
 
   return {
-    formatted:
-      diff >= 0 ? formatDifference(diff) : "",
+    formatted: diff >= 0 ? formatDifference(diff) : '',
     minutes: diff >= 0 ? diff : 0,
   };
 }
 
-const findRowsAndGetValues = (
-  text,
-  { exerciseGroup, workshopGroup, skipOrlof },
-): TimeTableDayType => {
-  const trimedText = text.trim().replaceAll(/\n/g, '');
-  const regex =
-    /(\d{1,2}:\d{1,2})(\d{1,2}:\d{1,2})((?:(?!ul\.)[\p{L} -\.])+)((?:ul\. ?[\p{L} -\.]+ ?)?\d+)([\p{L} \.]+ ([\p{L}]+\. )(\d|OA(?: Orlof)?))(ćw\.|war\.|lektorat|wykład)/gmu;
-  let matches;
-  const results = [];
-  const hourRange = {
-    start: null,
-    end: null,
-  };
-
-  while ((matches = regex.exec(trimedText)) !== null) {
-    if (
-      (skipOrlof === 'true' && matches[7] === 'OA Orlof') ||
-      ((exerciseGroup || workshopGroup) &&
-        !(
-          (matches[6] === 'ćw. ' &&
-            Number(matches[7]) === Number(exerciseGroup)) ||
-          (matches[6] === 'war. ' &&
-            Number(matches[7]) === Number(workshopGroup)) ||
-          !['ćw. ', 'war. '].includes(matches[6])
-        ))
-    )
-      continue;
-
-    const boundaryIndex = matches[3].lastIndexOf(
-      matches[3].match(/[a-z][A-Z]/g)?.pop() || '',
-    );
-    const location = matches[4].startsWith('ul.')
-      ? matches[4].split(/(ul\.[\p{L} -\.]+)/u).join(' ')
-      : matches[4];
-    const subject =
-      boundaryIndex !== -1 ? matches[3].slice(boundaryIndex + 1) : matches[3];
-    let color = {};
-
-    if (subject.replace(/[ ]/, '') in classesColors) {
-      color = classesColors[subject.replace(/[ ]/, '')];
-    } else {
-      color = colors[colorIndex];
-      classesColors[subject.replace(/[ ]/, '')] = color;
-      colorIndex++;
-    }
-
-    if (
-      !hourRange.start ||
-      timeDifference(hourRange.start, matches[1]).minutes < 0
-    ) {
-      hourRange.start = matches[1];
-    }
-    if (
-      !hourRange.end ||
-      timeDifference(hourRange.end, matches[1]).minutes > 0
-    ) {
-      hourRange.end = matches[2];
-    }
-
-    const breakBefore =
-      results.length > 0 && (workshopGroup || workshopGroup)
-        ? timeDifference(results[results.length - 1].end, matches[1])
-        : { formatted: '', minutes: 0 };
-    if (breakBefore.minutes < 0) {
-      breakBefore.formatted = '';
-      breakBefore.minutes = 0;
-    }
-
-    results.push({
-      start: matches[1],
-      end: matches[2],
-      subject,
-      teacher:
-        boundaryIndex !== -1
-          ? matches[3].slice(0, boundaryIndex + 1)
-          : matches[3],
-      room: location,
-      group: matches[5],
-      groupType: ['ćw. ', 'war. '].includes(matches[6]) ? matches[6] : '',
-      groupNumber: matches[7],
-      type: matches[8],
-      color,
-      breakBefore,
-    });
-  }
-  return {
-    hours: {
-      start: hourRange.start,
-      end: hourRange.end,
-    },
-    classes: results,
-  };
-};
-
-const getWeekDays = (text, filters): TimeTableWeekType => {
-  const weekSchedule: TimeTableWeekType = {
-    Poniedziałek: {
-      hours: {
-        start: '',
-        end: '',
-      },
-      classes: [],
-    },
-    Wtorek: {
-      hours: {
-        start: '',
-        end: '',
-      },
-      classes: [],
-    },
-    Środa: {
-      hours: {
-        start: '',
-        end: '',
-      },
-      classes: [],
-    },
-    Czwartek: {
-      hours: {
-        start: '',
-        end: '',
-      },
-      classes: [],
-    },
-    Piątek: {
-      hours: {
-        start: '',
-        end: '',
-      },
-      classes: [],
-    },
-  };
-  for (const dayIndex in weekdays) {
-    const day = weekdays[dayIndex];
-    if (parseInt(dayIndex) === 0) {
-      weekSchedule[day] = findRowsAndGetValues(
-        getSubstringBetween(text, 'Uwagi', weekdays[weekdays.indexOf(day) + 1]),
-        filters,
-      );
-    } else if (parseInt(dayIndex) === weekdays.length - 1) {
-      weekSchedule[day] = findRowsAndGetValues(
-        getSubstringFrom(text, day),
-        filters,
-      );
-    } else {
-      weekSchedule[day] = findRowsAndGetValues(
-        getSubstringBetween(text, day, weekdays[weekdays.indexOf(day) + 1]),
-        filters,
-      );
-    }
-  }
-  return weekSchedule;
-};
-
 const weekdays = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek'];
-
-function parseSchedule(text, filters): TimeTableType {
-  const timetable: TimeTableType = {
-    weekA: getWeekDays(
-      getSubstringBetween(text, 'Tydzień A', 'Tydzień B'),
-      filters,
-    ),
-    weekB: getWeekDays(getSubstringFrom(text, 'Tydzień B'), filters),
-  };
-  // console.log(timetable.weekA.Poniedziałek.classes);
-  return timetable;
-}
 
 const getLessonColor = (subject: string) => {
   if (subject.replace(/[ ]/, '') in classesColors) {
@@ -323,7 +136,10 @@ const getWeeekSchedule = (
   for (const lesson of week) {
     groups.add(lesson.spec);
     if (
-      filters && !filters?.split(',').includes(lesson.spec.toLowerCase().replace(/\s/g, ''))
+      filters &&
+      !filters
+        ?.split(',')
+        .includes(lesson.spec.toLowerCase().replace(/\s/g, ''))
     ) {
       continue;
     }
@@ -373,25 +189,8 @@ export class AppService {
   constructor(private readonly httpService: HttpService) {}
 
   async getTimeTable(allFilters: {
-    exerciseGroup: number;
-    workshopGroup: number;
-    skipOrlof: boolean;
     filters: string;
   }): Promise<TimeTableType & FiltersType & OtherData> {
-    const data = await this.httpService.axiosRef.get(timetableUrl);
-    const root = parse(data.data);
-    const pdfLink = root.querySelector('.ce_text > p:nth-child(2) a');
-    if (!pdfLink) {
-      throw new Error('No pdf url found');
-    }
-    const timetableUrlObject = new URL(timetableUrl);
-    const fulllPdfUrl = `${timetableUrlObject.protocol}//${
-      timetableUrlObject.hostname
-    }/${pdfLink.getAttribute('href')}`;
-
-    const response = await crawler(fulllPdfUrl);
-    const results = parseSchedule(response.text, allFilters) as TimeTableType;
-
     const timetableWeekA =
       await this.httpService.axiosRef.post<TTimetableResponse>(
         timetableApiUrl,
@@ -426,7 +225,9 @@ export class AppService {
       weekB,
       groups: Array.from(new Set([...groupsA, ...groupsB])).map((group) => ({
         name: group,
-        active: allFilters.filters?.split(',').includes(group.toLowerCase().replace(/\s/g, '')),
+        active: allFilters.filters
+          ?.split(',')
+          .includes(group.toLowerCase().replace(/\s/g, '')),
       })),
     };
   }
@@ -434,9 +235,6 @@ export class AppService {
   async generatePdf(
     res: Response,
     allFilters: {
-      exerciseGroup: number;
-      workshopGroup: number;
-      skipOrlof: boolean;
       filters: string;
     },
   ) {
@@ -467,7 +265,6 @@ export class AppService {
       timetableWeekB.data,
       allFilters.filters,
     );
-    
 
     const html = readFileSync(
       join(__dirname, '..', 'views', 'pdf.hbs'),
@@ -478,12 +275,16 @@ export class AppService {
         html: html,
         data: {
           filters: allFilters,
-      weekA,
-      weekB,
-      groups: Array.from(new Set([...groupsA, ...groupsB])).map((group) => ({
-        name: group,
-        active: allFilters.filters?.split(',').includes(group.toLowerCase().replace(/\s/g, '')),
-      })),
+          weekA,
+          weekB,
+          groups: Array.from(new Set([...groupsA, ...groupsB])).map(
+            (group) => ({
+              name: group,
+              active: allFilters.filters
+                ?.split(',')
+                .includes(group.toLowerCase().replace(/\s/g, '')),
+            }),
+          ),
         },
         type: 'buffer',
       },

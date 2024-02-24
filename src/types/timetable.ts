@@ -41,18 +41,11 @@ export type TimeTableType = {
 
 export type FiltersType = {
   filters: {
-    exerciseGroup?: number;
-    workshopGroup?: number;
+    filters: string
   };
 };
 
 export type OtherData = {
-  exerciseGroups?: Array<{
-    active: boolean;
-  }>;
-  workshopGroups?: Array<{
-    active: boolean;
-  }>;
   groups: {
     name: string;
     active: boolean;
