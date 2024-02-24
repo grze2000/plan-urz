@@ -5,6 +5,7 @@ import * as crawler from 'crawler-request';
 import {
   FiltersType,
   OtherData,
+  TTimetableResponse,
   TimeTableDayType,
   TimeTableType,
   TimeTableWeekType,
@@ -13,6 +14,9 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as pdf from 'pdf-creator-node';
 import { Response } from 'express';
+import { AxiosResponse } from 'axios';
+import * as dayjs from 'dayjs';
+import { group } from 'console';
 
 const colors = [
   { backgroundColor: '#ffd1dc', borderColor: '#d6a1ac' },
@@ -42,6 +46,9 @@ let colorIndex = 0;
 
 const timetableUrl =
   'https://www.ur.edu.pl/pl/kolegia/kolegium-nauk-spolecznych/student/kierunki-studiow-programy-rozklady-sylabusy/pedagogika/rozklady-zajec';
+
+const timetableApiUrl =
+  'https://planurz2.grzegorzbabiarz.com/api/zapytania/planzajec/';
 
 function getSubstringBetween(string, string1, string2) {
   return string
@@ -139,7 +146,7 @@ const findRowsAndGetValues = (
     }
 
     const breakBefore =
-      (results.length > 0 && (workshopGroup || workshopGroup))
+      results.length > 0 && (workshopGroup || workshopGroup)
         ? timeDifference(results[results.length - 1].end, matches[1])
         : { formatted: '', minutes: 0 };
     if (breakBefore.minutes < 0) {
@@ -165,18 +172,51 @@ const findRowsAndGetValues = (
     });
   }
   return {
-    hours: `(${hourRange.start}-${hourRange.end})`,
+    hours: {
+      start: hourRange.start,
+      end: hourRange.end,
+    },
     classes: results,
   };
 };
 
 const getWeekDays = (text, filters): TimeTableWeekType => {
   const weekSchedule: TimeTableWeekType = {
-    Poniedziałek: { hours: '', classes: [] },
-    Wtorek: { hours: '', classes: [] },
-    Środa: { hours: '', classes: [] },
-    Czwartek: { hours: '', classes: [] },
-    Piątek: { hours: '', classes: [] },
+    Poniedziałek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Wtorek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Środa: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Czwartek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Piątek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
   };
   for (const dayIndex in weekdays) {
     const day = weekdays[dayIndex];
@@ -214,6 +254,16 @@ function parseSchedule(text, filters): TimeTableType {
   return timetable;
 }
 
+const getLessonColor = (subject: string) => {
+  if (subject.replace(/[ ]/, '') in classesColors) {
+    return classesColors[subject.replace(/[ ]/, '')];
+  }
+  const color = colors[colorIndex % colors.length];
+  classesColors[subject.replace(/[ ]/, '')] = color;
+  colorIndex++;
+  return color;
+};
+
 const options = {
   format: 'Legal',
   orientation: 'landscape',
@@ -225,6 +275,88 @@ const options = {
       OPENSSL_CONF: '/dev/null',
     },
   },
+};
+
+const getWeeekSchedule = (
+  week: TTimetableResponse,
+): [TimeTableWeekType, string[]] => {
+  const weekSchedule: TimeTableWeekType = {
+    Poniedziałek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Wtorek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Środa: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Czwartek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+    Piątek: {
+      hours: {
+        start: '',
+        end: '',
+      },
+      classes: [],
+    },
+  };
+
+  const groups = new Set<string>();
+  for (const lesson of week) {
+    groups.add(lesson.spec);
+
+    const day = weekSchedule[weekdays[dayjs(lesson.pz_data_od).weekday() - 1]];
+    const classesStart = `${lesson.godz}:${lesson.min}`;
+    const classesEnd = dayjs()
+      .hour(Number(lesson.godz))
+      .minute(Number(lesson.min))
+      .add(Number(lesson.licznik_g) * 45, 'm')
+      .format('HH:mm');
+    day.classes.push({
+      start: classesStart,
+      end: classesEnd,
+      subject: lesson.p_nazwa,
+      teacher: `${lesson.tytul_naukowy_nazwa} ${lesson.imie} ${lesson.nazwisko}`,
+      room: lesson.bs_nazwa,
+      group: lesson.spec,
+      groupType: '-',
+      groupNumber: '-',
+      type: lesson.fz_nazwa,
+      color: getLessonColor(lesson.p_nazwa),
+      breakBefore: { formatted: '', minutes: 0 },
+    });
+
+    if (
+      !day.hours.start ||
+      timeDifference(day.hours.start, classesStart).minutes < 0
+    ) {
+      day.hours.start = classesStart;
+    }
+    if (
+      !day.hours.end ||
+      timeDifference(day.hours.end, classesStart).minutes > 0
+    ) {
+      day.hours.end = classesEnd;
+    }
+  }
+  return [weekSchedule, Array.from(groups)];
 };
 
 @Injectable()
@@ -250,6 +382,28 @@ export class AppService {
     const response = await crawler(fulllPdfUrl);
     const results = parseSchedule(response.text, filters) as TimeTableType;
 
+    const timetableWeekA =
+      await this.httpService.axiosRef.post<TTimetableResponse>(
+        timetableApiUrl,
+        {
+          zakres_s: 1,
+          kierunek: '1',
+          id: '1630',
+        },
+      );
+    const timetableWeekB =
+      await this.httpService.axiosRef.post<TTimetableResponse>(
+        timetableApiUrl,
+        {
+          zakres_s: 2,
+          kierunek: '1',
+          id: '1630',
+        },
+      );
+
+    const [weekA, groupsA] = getWeeekSchedule(timetableWeekA.data);
+    const [weekB, groupsB] = getWeeekSchedule(timetableWeekB.data);
+
     return {
       ...results,
       filters,
@@ -260,6 +414,12 @@ export class AppService {
       workshopGroups: Array.from({ length: 8 }, (_, i) => ({
         active: i + 1 === Number(filters.workshopGroup),
         number: i + 1,
+      })),
+      weekA,
+      weekB,
+      groups: Array.from(new Set([...groupsA, ...groupsB])).map((group) => ({
+        name: group,
+        active: false,
       })),
     };
   }

@@ -14,29 +14,13 @@
   <body>
     <a class="btn hamburger" id="hamburger">&equiv;</a>
     <div class='buttons mb-2 hidden' id="actions">
-      <a class='btn' href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">Podgląd PDF</a>
-      <a class='btn-filter {{#unless filters.skipOrlof}}btn-filter-active{{/unless}}' href="/?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#unless filters.skipOrlof}}&skipOrlof=true{{/unless}}">OA Orlof</a>
-      <div>
-        <div class="mb-1">Grupa warsztatowa:</div>
-        <div class="row-2">
-          {{#each workshopGroups}}
-            <a class="btn-filter {{#if this.active}}btn-filter-active{{/if}}" href="/?{{#if ../filters.exerciseGroup}}exerciseGroup={{../filters.exerciseGroup}}{{/if}}&workshopGroup={{this.number}}{{#if ../filters.skipOrlof}}&skipOrlof=true{{/if}}">
-              {{this.number}}
-            </a>
-          {{/each}}
-          <a class="btn-filter {{#unless filters.workshopGroup}}btn-filter-active{{/unless}}" href="/?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">✖</a>
-        </div>
-      </div>
-      <div>
-        <div  class="mb-1">Grupa ćwiczeniowa:</div>
-        <div class="row-2">
-          {{#each exerciseGroups}}
-            <a class="btn-filter {{#if this.active}}btn-filter-active{{/if}}" href="/?exerciseGroup={{this.number}}{{#if ../filters.workshopGroup}}&workshopGroup={{../filters.workshopGroup}}{{/if}}{{#if ../filters.skipOrlof}}&skipOrlof=true{{/if}}">
-              {{this.number}}
-            </a>
-          {{/each}}
-          <a class="btn-filter {{#unless filters.exerciseGroup}}btn-filter-active{{/unless}}" href="/?{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">✖</a>
-        </div>
+      {{!-- <a class='btn' href="/pdf?{{#if filters.exerciseGroup}}exerciseGroup={{filters.exerciseGroup}}{{/if}}{{#if filters.workshopGroup}}&workshopGroup={{filters.workshopGroup}}{{/if}}{{#if filters.skipOrlof}}&skipOrlof=true{{/if}}">Podgląd PDF</a> --}}
+      {{!-- <div class="row-2">
+        {{#each groups}}
+          <button class="btn-filter {{#if this.active}}btn-filter-active{{/if}}" href="/">
+            {{this.name}}
+          </button>
+        {{/each}} --}}
       </div>
     </div>
     <div class='timetable'>
@@ -46,7 +30,7 @@
           {{#each this as |day dayName|}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
-              <p class='dayHours'>{{day.hours}}</p>
+              <p class='dayHours'>({{day.hours.start}} - {{day.hours.end}})</p>
               <div class='lessons'>
                 {{#each day.classes as |class|}}
                   {{#if class.breakBefore.minutes}}
@@ -66,10 +50,10 @@
                       </div>
                     </div>
                     <div class='content'>
-                      <div>Sala <b>{{class.room}}</b>,</div>
-                      <div>grupa
-                        <b>{{class.groupType}}
-                          {{class.groupNumber}}</b></div>
+                      <div>
+                        <div>Sala <b>{{class.room}}</b></div>
+                        <div>Grupa <b>{{class.group}}</b></div>
+                      </div>
                       <div class='right'>{{class.type}}</div>
                     </div>
                   </div>
@@ -87,7 +71,7 @@
           {{#if class.breakBefore.minutes}}<div class="break">{{class.breakBefore.formatted}}</div>{{/if}}
             <div class='day'>
               <h3 class='dayName'>{{dayName}}</h3>
-              <p class='dayHours'>{{day.hours}}</p>
+              <p class='dayHours'>({{day.hours.start}} - {{day.hours.end}})</p>
               <div class='lessons'>
                 {{#each day.classes as |class|}}
                   {{#if class.breakBefore.minutes}}
@@ -107,10 +91,10 @@
                       </div>
                     </div>
                     <div class='content'>
-                      <div>Sala <b>{{class.room}}</b>,</div>
-                      <div>grupa
-                        <b>{{class.groupType}}
-                          {{class.groupNumber}}</b></div>
+                      <div>
+                        <div>Sala <b>{{class.room}}</b></div>
+                        <div>Grupa <b>{{class.group}}</b></div>
+                      </div>
                       <div class='right'>{{class.type}}</div>
                     </div>
                   </div>
@@ -127,6 +111,34 @@
         const actions = document.querySelector('#actions')
         actions.classList.toggle('hidden')
       })
+
+      const filters = document.querySelectorAll('.btn-filter')
+      filters.forEach((filter) => {
+        filter.addEventListener('click', () => {
+          filter.classList.toggle('btn-filter-active')
+          const filterText = filter.textContent.toLowerCase().replace(/\s/g, '');
+          const queryParams = new URLSearchParams(window.location.search);
+          const filtersParam = queryParams.get("filters");
+          
+          if (filtersParam) {
+            const filtersArray = filtersParam.split(",");
+            const index = filtersArray.indexOf(filterText);
+            
+            if (index !== -1) {
+              filtersArray.splice(index, 1);
+            } else {
+              filtersArray.push(filterText);
+            }
+            
+            queryParams.set("filters", filtersArray.join(","));
+          } else {
+            queryParams.set("filters", filterText);
+          }
+          
+          const newUrl = `${window.location.pathname}?${queryParams.toString()}`;
+          window.location.href = newUrl;
+        });
+      });
     </script>
   </body>
 </html>

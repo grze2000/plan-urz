@@ -19,7 +19,10 @@ export type ClassesType = {
 };
 
 export type TimeTableDayType = {
-  hours: string;
+  hours: {
+    start: string;
+    end: string;
+  };
   classes: ClassesType[];
 };
 
@@ -50,4 +53,26 @@ export type OtherData = {
   workshopGroups: Array<{
     active: boolean;
   }>;
+  groups: {
+    name: string;
+    active: boolean;
+  }[]
 }
+
+export type TLesson = {
+  id_g: string
+  godz: string
+  min: string
+  pz_data_od: string
+  licznik_g: string
+  tytul_naukowy_nazwa: string
+  imie: string
+  nazwisko: string
+  p_nazwa: string
+  spec: string
+  bs_nazwa: string
+  fz_nazwa: string
+  u_nazwa: string
+}
+
+export type TTimetableResponse = TLesson[]
